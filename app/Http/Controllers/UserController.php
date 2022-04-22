@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\User;
+use App\Mail\SendMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -41,9 +42,106 @@ class UserController extends Controller
             'password' => bcrypt($request->password)
         ]);
 
+        $token = JWTAuth::fromUser($user);
+
+        $mail = new SendMail();
+        $check = $mail->sendVerifyMail($user, $token);
+
         return response()->json([
-            'message' => 'User Successfully Registered'
+            'message' => 'User Successfully Registered. Check Your Mail and Verify User.'
         ], 201);
+    }
+
+    /**
+     * Verify Registered User
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function verifyUser(Request $request)
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'User Not Found'
+                ], 404);
+            } else {
+                if ($user->isverified == 0) {
+                    $user->isverified = 1;
+                    $user->save();
+                    return response()->json([
+                        'message' => 'User Successfully Verified'
+                    ], 201);
+                } else {
+                    return response()->json([
+                        'message' => 'User Already Verified'
+                    ], 202);
+                }
+            }
+        } catch (JWTException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Verify User After Register
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function sendVerificationMail(Request $request)
+    {
+        try {
+            $credentials = $request->only('email', 'password');
+
+            //valid credential
+            $validator = Validator::make($credentials, [
+                'email' => 'required|email',
+                'password' => 'required|string|min:6|max:15'
+            ]);
+
+            //Send failed response if request is not valid
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 401);
+            }
+
+            //Request is validated
+            //Create token
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                Log::error('Not a Registered Email');
+                return response()->json([
+                    'message' => 'Not a Registered Email'
+                ], 404);
+            } elseif (!Hash::check($request->password, $user->password)) {
+                Log::error('Wrong Password');
+                return response()->json([
+                    'message' => 'Wrong Password'
+                ], 402);
+            } else {
+                if ($user->isverified == 0) {
+                    //Token created, return with success response and jwt token
+                    $token = JWTAuth::attempt($credentials);
+                    $mail = new SendMail();
+                    $check = $mail->sendVerifyMail($user, $token);
+                    return response()->json([
+                        'success' => 'Verification Mail Sent Successfully'
+                    ], 201);
+                }
+                else{
+                    return response()->json([
+                        'message' => 'User Already Verified'
+                    ], 202);
+                }
+            }
+        } catch (JWTException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage()
+            ], 400);
+        }
     }
 
     /**
@@ -89,13 +187,10 @@ class UserController extends Controller
                 'success' => 'Login Successful',
                 'token' => $token
             ], 201);
-        } catch (JWTException $e) {
-            return $credentials;
-            Log::error('Could not create token');
+        } catch (JWTException $exception) {
             return response()->json([
-                'status' => 500,
-                'message' => 'Could not create token',
-            ], 500);
+                'message' => $exception->getMessage()
+            ], 400);
         }
     }
 

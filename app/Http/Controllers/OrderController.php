@@ -39,26 +39,38 @@ class OrderController extends Controller
                     'message' => 'Invalid Authorization Token'
                 ], 401);
             } else {
-                $ticket = Ticket::where('id', $request->ticket_id)->first();
-                if (!$ticket) {
-                    return response()->json([
-                        'message' => 'Ticket Not Found'
-                    ], 404);
-                } else {
-                    $order = Order::create([
-                        'user_id' => $user->id,
-                        'ticket_id' => $request->ticket_id,
-                        'ticket_count' => $request->ticket_count
-                    ]);
-                    if ($order->save()) {
+                if ($user->isverified == 1) {
+                    $ticket = Ticket::where('id', $request->ticket_id)->first();
+                    if (!$ticket) {
                         return response()->json([
-                            'message' => 'Order Added Sucessfully',
-                        ], 201);
+                            'message' => 'Ticket Not Found'
+                        ], 404);
                     } else {
-                        return response()->json([
-                            'message' => 'Order Not Added',
-                        ], 202);
+                        if($request->ticket_count > 0){
+                            $order = Order::create([
+                                'user_id' => $user->id,
+                                'ticket_id' => $request->ticket_id,
+                                'ticket_count' => $request->ticket_count
+                            ]);
+                            if ($order->save()) {
+                                return response()->json([
+                                    'message' => 'Order Added Sucessfully'
+                                ], 201);
+                            } else {
+                                return response()->json([
+                                    'message' => 'Order Not Added'
+                                ], 202);
+                            }
+                        } else{
+                            return response()->json([
+                                'message' => 'Ticket Count Should be Greater Than 0'
+                            ], 406);
+                        } 
                     }
+                } else{
+                    return response()->json([
+                        'message' => 'Not a Verified User'
+                    ], 401);
                 }
             }
         } catch (JWTException $exception) {
@@ -69,11 +81,11 @@ class OrderController extends Controller
     }
 
     /**
-     * Display Order By ID
+     * Display Orders of a User
      * 
      * @return \Illuminate\Http\JsonResponse
      */
-    public function displayOrderById(Request $request)
+    public function displayOrders(Request $request)
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
@@ -82,7 +94,7 @@ class OrderController extends Controller
                     'message' => 'Invalid authorization token'
                 ], 401);
             } else {
-                $order = Order::where('user_id', $user->id)->get();
+                $order = Order::getOrders($user);
                 if (!$order) {
                     return response()->json([
                         'message' => 'Orders Not Found'

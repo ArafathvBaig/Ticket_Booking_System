@@ -82,6 +82,28 @@ class TicketController extends Controller
     }
 
     /**
+     * Display All Tickets
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function displayAllTickets(Request $request)
+    {
+        $ticket = Ticket::get();
+        if (!$ticket) {
+            Log::info('Ticket Not Found With This ID');
+            return response()->json([
+                'message' => 'Ticket Not Found With This ID'
+            ], 404);
+        } else {
+            Log::info('Ticket Fetched Successfully');
+            return response()->json([
+                'message' => 'Ticket Fetched Successfully',
+                'ticket' => $ticket
+            ], 200);
+        }
+    }
+
+    /**
      * Update Ticket By ID
      * 
      * @return \Illuminate\Http\JsonResponse

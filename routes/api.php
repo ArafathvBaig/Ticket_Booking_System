@@ -24,14 +24,17 @@ use App\Http\Controllers\OrderController;
 Route::group(['middleware' => 'api'], function () {
     Route::post('register', [UserController::class, 'register']);
     Route::post('login', [UserController::class, 'login']);
+    Route::post('sendVerificationMail', [UserController::class, 'sendVerificationMail']);
+    Route::post('verifyUser', [UserController::class, 'verifyUser']);
 
     Route::post('createTicket', [TicketController::class, 'createTicket']);
     Route::get('displayTicketById', [TicketController::class, 'displayTicketById']);
+    Route::get('displayAllTickets', [TicketController::class, 'displayAllTickets']);
     Route::post('updateTicketById', [TicketController::class, 'updateTicketById']);
     Route::post('deleteTicketById', [TicketController::class, 'deleteTicketById']);
 
     Route::post('addOrder', [OrderController::class, 'addOrder']);
-    Route::get('displayOrderById', [OrderController::class, 'displayOrderById']);
+    Route::get('displayOrders', [OrderController::class, 'displayOrders']);
     Route::post('updateOrderById', [OrderController::class, 'updateOrderById']);
     Route::post('deleteOrderById', [OrderController::class, 'deleteOrderById']);
 });

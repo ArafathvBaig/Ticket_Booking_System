@@ -16,6 +16,20 @@ class Order extends Model
         'ticket_count',
     ];
 
+    /**
+     * Function to get the Orders
+     * Passing the user as a parameter
+     * 
+     * @return array
+     */
+    public static function getOrders($user)
+    {
+        $orders = Order::leftJoin('tickets', 'tickets.id', '=', 'orders.ticket_id')
+        ->select('orders.id', 'orders.user_id', 'orders.ticket_id', 'orders.ticket_count', 'tickets.title', 'tickets.cost')
+        ->where('orders.user_id', $user->id)->get();
+        return $orders;
+    }
+
     public function users()
     {
         return $this->belongsTo(User::class);
