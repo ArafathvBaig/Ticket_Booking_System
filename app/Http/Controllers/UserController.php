@@ -28,7 +28,7 @@ class UserController extends Controller
             'first_name' => 'required|string|min:3',
             'last_name' => 'required|string|min:3',
             'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6|max:15'
+            'password' => 'required|string|min:6|max:30'
         ]);
 
         if ($validator->fails()) {
@@ -99,7 +99,7 @@ class UserController extends Controller
             //valid credential
             $validator = Validator::make($credentials, [
                 'email' => 'required|email',
-                'password' => 'required|string|min:6|max:15'
+                'password' => 'required|string|min:6|max:30'
             ]);
 
             //Send failed response if request is not valid

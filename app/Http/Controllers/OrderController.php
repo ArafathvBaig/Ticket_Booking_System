@@ -47,10 +47,12 @@ class OrderController extends Controller
                         ], 404);
                     } else {
                         if($request->ticket_count > 0){
+                            $total_cost = $ticket->cost * $request->ticket_count;
                             $order = Order::create([
                                 'user_id' => $user->id,
                                 'ticket_id' => $request->ticket_id,
-                                'ticket_count' => $request->ticket_count
+                                'ticket_count' => $request->ticket_count,
+                                'total_cost' => $total_cost,
                             ]);
                             if ($order->save()) {
                                 return response()->json([
@@ -143,8 +145,11 @@ class OrderController extends Controller
                         'message' => 'Order Not Found For This User'
                     ], 404);
                 } else {
+                    $ticket = Ticket::where('id', $request->ticket_id)->first();
+                    $total_cost = $ticket->cost * $request->ticket_count;
                     $order->ticket_id = $request->ticket_id;
                     $order->ticket_count = $request->ticket_count;
+                    $order->total_cost = $total_cost;
                     if ($order->save()) {
                         return response()->json([
                             'message' => "Order Updated Successfully"

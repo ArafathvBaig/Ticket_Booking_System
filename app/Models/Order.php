@@ -14,6 +14,7 @@ class Order extends Model
         'user_id',
         'ticket_id',
         'ticket_count',
+        'total_cost',
     ];
 
     /**
@@ -25,7 +26,7 @@ class Order extends Model
     public static function getOrders($user)
     {
         $orders = Order::leftJoin('tickets', 'tickets.id', '=', 'orders.ticket_id')
-        ->select('orders.id', 'orders.user_id', 'orders.ticket_id', 'orders.ticket_count', 'tickets.title', 'tickets.cost')
+        ->select('orders.id', 'orders.user_id', 'orders.ticket_id', 'orders.ticket_count', 'tickets.title', 'orders.total_cost')
         ->where('orders.user_id', $user->id)->get();
         return $orders;
     }

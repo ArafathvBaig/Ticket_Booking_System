@@ -18,6 +18,7 @@ class CreateOrdersTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('ticket_id');
             $table->integer('ticket_count');
+            $table->integer('total_cost');
             $table->foreign('ticket_id')
                 ->references('id')
                 ->on('tickets')
